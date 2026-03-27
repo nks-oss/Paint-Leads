@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paint Solutions Finder</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .container { width: 100%; max-width: 520px; }
+
+  .card {
+    background: white;
+    border-radius: 18px;
+    padding: 32px 28px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: fadeIn 0.4s ease;
+  }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+
+  .hidden { display: none !important; }
+
+  /* Progress */
+  .progress-wrap { margin-bottom: 20px; }
+  .progress-label { display:flex; justify-content:space-between; font-size:12px; color:#666; margin-bottom:6px; }
+  .progress-bar { background:#e0e0e0; border-radius:99px; height:8px; }
+  .progress-fill { background: linear-gradient(90deg, #e63946, #f4a261); height:8px; border-radius:99px; transition: width 0.4s ease; }
+
+  /* Logo / Badge */
+  .badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #e63946, #f4a261);
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 4px 12px;
+    border-radius: 99px;
+    margin-bottom: 14px;
+    text-transform: uppercase;
+  }
+
+  h2 { font-size: 22px; color: #1a1a2e; margin-bottom: 10px; line-height: 1.35; }
+  h3 { font-size: 19px; color: #1a1a2e; margin-bottom: 20px; line-height: 1.4; }
+  p { color: #555; line-height: 1.6; margin-bottom: 16px; font-size: 14px; }
+
+  /* Buttons */
+  .btn-primary {
+    display: block; width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #e63946, #f4a261);
+    color: white; border: none;
+    border-radius: 10px; font-size: 16px;
+    font-weight: 700; cursor: pointer;
+    margin-top: 10px; transition: opacity 0.2s;
+  }
+  .btn-primary:hover { opacity: 0.9; }
+
+  .options { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+  .opt-btn {
+    padding: 13px 16px; background: #f8f9fa;
+    border: 2px solid #e0e0e0; border-radius: 10px;
+    font-size: 14px; cursor: pointer; text-align: left;
+    transition: all 0.2s; color: #1a1a2e; font-weight: 500;
+  }
+  .opt-btn:hover { border-color: #e63946; background: #fff5f5; }
+  .opt-btn.selected { border-color: #e63946; background: #fff0f0; color: #e63946; }
+
+  /* Form inputs */
+  .form-group { margin-bottom: 14px; }
+  label { display:block; font-size:13px; font-weight:600; color:#444; margin-bottom:5px; }
+  input, select {
+    width: 100%; padding: 11px 13px;
+    border: 2px solid #e0e0e0; border-radius: 9px;
+    font-size: 14px; outline: none; transition: border 0.2s;
+    color: #1a1a2e;
+  }
+  input:focus, select:focus { border-color: #e63946; }
+
+  /* Result */
+  .score-ring {
+    width: 120px; height: 120px; border-radius: 50%;
+    border: 8px solid #e63946;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 30px; font-weight: 800; color: #e63946;
+    background: #fff5f5;
+  }
+  .result-label { font-size: 18px; font-weight: 700; color: #1a1a2e; margin-bottom: 8px; }
+  .result-msg { font-size: 14px; color: #555; margin-bottom: 20px; }
+  .recommendation {
+    background: #f8f9fa; border-radius: 12px; padding: 16px;
+    margin-bottom: 20px; border-left: 4px solid #e63946;
+    text-align: left;
+  }
+  .recommendation h4 { font-size: 14px; color: #e63946; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .recommendation ul { padding-left: 18px; }
+  .recommendation li { font-size: 13px; color: #444; margin-bottom: 5px; }
+
+  .btn-wa {
+    display: block; width: 100%;
+    padding: 14px;
+    background: #25D366;
+    color: white; border: none;
+    border-radius: 10px; font-size: 15px;
+    font-weight: 700; cursor: pointer;
+    margin-top: 10px; transition: opacity 0.2s;
+    text-decoration: none; text-align: center;
+  }
+  .btn-wa:hover { opacity: 0.9; }
+
+  .start-icon { font-size: 48px; margin-bottom: 12px; }
+  .highlight { color: #e63946; }
+  .divider { border: none; border-top: 1px solid #eee; margin: 16px 0; }
+  .step-count { font-size: 12px; color: #999; text-align: right; margin-bottom: 4px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- START SCREEN -->
+  <div id="start" class="card" style="text-align:center;">
+    <div class="start-icon">🏗️</div>
+    <div class="badge">Free Consultation</div>
+    <h2>Find the <span class="highlight">Right Paint Solution</span> for Your Project</h2>
+    <p>Answer 5 quick questions and get a personalized recommendation for Industrial, Waterproof & Protective Coatings.</p>
+    <hr class="divider">
+    <p style="font-size:13px;">✅ Takes under 2 minutes &nbsp;|&nbsp; 🎯 100% Free</p>
+    <button class="btn-primary" onclick="startQuiz()">Start My Assessment →</button>
+  </div>
+
+  <!-- QUIZ SCREEN -->
+  <div id="quiz" class="card hidden">
+    <div class="progress-wrap">
+      <div class="progress-label">
+        <span>Paint Solutions Finder</span>
+        <span id="prog-text">1 of 5</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:20%"></div></div>
+    </div>
+    <h3 id="question"></h3>
+    <div class="options" id="options"></div>
+  </div>
+
+  <!-- LEAD CAPTURE -->
+  <div id="form" class="card hidden">
+    <div class="badge">Almost There!</div>
+    <h2>Get Your <span class="highlight">Free Recommendation</span></h2>
+    <p>Enter your details to see your personalized paint solution and get a free consultation.</p>
+    <div class="form-group">
+      <label>Your Name *</label>
+      <input id="name" placeholder="e.g. Rajesh Kumar" type="text">
+    </div>
+    <div class="form-group">
+      <label>WhatsApp Number *</label>
+      <input id="mobile" placeholder="10-digit mobile number" type="tel" maxlength="10">
+    </div>
+    <div class="form-group">
+      <label>City / Location</label>
+      <input id="city" placeholder="e.g. Patna, Bihar">
+    </div>
+    <div class="form-group">
+      <label>Project Budget (Approx.)</label>
+      <select id="budget">
+        <option>Below ₹50,000</option>
+        <option>₹50,000 – ₹2 Lakh</option>
+        <option>₹2 Lakh – ₹10 Lakh</option>
+        <option>Above ₹10 Lakh</option>
+      </select>
+    </div>
+    <button class="btn-primary" onclick="showResult()">Show My Recommendation →</button>
+  </div>
+
+  <!-- RESULT SCREEN -->
+  <div id="result" class="card hidden" style="text-align:center;">
+    <div class="badge">Your Result</div>
+    <div class="score-ring" id="score-ring"></div>
+    <div class="result-label" id="result-label"></div>
+    <div class="result-msg" id="result-msg"></div>
+    <div class="recommendation" id="recommendation"></div>
+    <button class="btn-primary" onclick="bookConsult()">📞 Book Free Consultation</button>
+    <a class="btn-wa" id="wa-btn" href="#" target="_blank">💬 Chat on WhatsApp</a>
+  </div>
+
+</div>
+
+<script>
+const questions = [
+  {
+    q: "What best describes your project?",
+    opts: ["New construction / building", "Renovation / repainting", "Factory / warehouse / industrial", "Infrastructure (bridge, tank, pipeline)"]
+  },
+  {
+    q: "What type of surface needs coating?",
+    opts: ["Interior walls & ceilings", "Exterior walls (weatherproofing)", "Metal / steel structures", "Concrete floors / rooftops"]
+  },
+  {
+    q: "What is your biggest paint concern?",
+    opts: ["Waterproofing & leakage", "Corrosion & rust protection", "Durability & long life", "Heat & chemical resistance"]
+  },
+  {
+    q: "How large is your project area?",
+    opts: ["Small (< 1,000 sq ft)", "Medium (1,000 – 5,000 sq ft)", "Large (5,000 – 20,000 sq ft)", "Very Large (20,000+ sq ft)"]
+  },
+  {
+    q: "When do you need the project completed?",
+    opts: ["Within 1 month", "1 – 3 months", "3 – 6 months", "Planning stage only"]
+  }
+];
+
+let idx = 0;
+let answers = [];
+
+function startQuiz() {
+  show('quiz');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = questions[idx];
+  document.getElementById('question').innerText = q.q;
+  const optsEl = document.getElementById('options');
+  optsEl.innerHTML = '';
+  q.opts.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    btn.innerText = opt;
+    btn.onclick = () => selectAnswer(opt, btn);
+    optsEl.appendChild(btn);
+  });
+  const pct = ((idx + 1) / questions.length) * 100;
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-text').innerText = `${idx + 1} of ${questions.length}`;
+}
+
+function selectAnswer(val, btn) {
+  document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  setTimeout(() => {
+    answers[idx] = val;
+    idx++;
+    if (idx < questions.length) {
+      renderQuestion();
+    } else {
+      show('form');
+    }
+  }, 300);
+}
+
+function showResult() {
+  const name = document.getElementById('name').value.trim();
+  const mobile = document.getElementById('mobile').value.trim();
+  if (!name || mobile.length < 10) {
+    alert('Please enter your name and valid 10-digit mobile number.');
+    return;
+  }
+  show('result');
+  buildResult();
+}
+
+function buildResult() {
+  const concern = answers[2] || '';
+  const surface = answers[1] || '';
+  const project = answers[0] || '';
+
+  let label, msg, products, score;
+
+  if (concern.includes('Waterproof') || surface.includes('roof') || surface.includes('Exterior')) {
+    score = '⭐ High Match';
+    label = 'Waterproofing Specialist Needed';
+    msg = 'Your project requires premium waterproofing solutions to prevent seepage and structural damage.';
+    products = ['Dr. Fixit / Asian Paints Damp Block', 'Elastomeric roof coating', 'Exterior weatherproof emulsion', 'Crystalline waterproofing compound'];
+  } else if (concern.includes('Corrosion') || surface.includes('Metal') || project.includes('Industrial')) {
+    score = '⭐ High Match';
+    label = 'Industrial Coating Recommended';
+    msg = 'Your metal or industrial surfaces need high-performance anti-corrosion and protective coatings.';
+    products = ['Epoxy primer + polyurethane topcoat', 'Zinc-rich primer for steel', 'Heat-resistant paint (up to 600°C)', 'Floor hardener / epoxy flooring'];
+  } else if (concern.includes('Heat') || project.includes('Infrastructure')) {
+    score = '⭐ Specialty Match';
+    label = 'Heavy-Duty Protective Coating';
+    msg = 'Infrastructure and high-heat environments need specialized industrial-grade coatings.';
+    products = ['High-heat silicone paint', 'Bituminous / coal tar coating', 'Epoxy tank lining', 'Anti-carbonation coating'];
+  } else {
+    score = '✅ Good Match';
+    label = 'Premium Interior / Exterior Solution';
+    msg = 'Your project needs durable, long-lasting decorative and protective paints for lasting results.';
+    products = ['Tractor Emulsion / Apex Ultima', 'Texture / putty finish', 'Low-VOC interior emulsion', 'Wood primer + enamel'];
+  }
+
+  document.getElementById('score-ring').innerText = score.split(' ')[0];
+  document.getElementById('result-label').innerText = label;
+  document.getElementById('result-msg').innerText = msg;
+  document.getElementById('recommendation').innerHTML = `
+    <h4>🎯 Recommended Products / Solutions</h4>
+    <ul>${products.map(p => `<li>${p}</li>`).join('')}</ul>
+  `;
+
+  // WhatsApp link
+  const name = document.getElementById('name').value.trim();
+  const mobile = document.getElementById('mobile').value.replace(/\D/g,'');
+  const city = document.getElementById('city').value || 'N/A';
+  const budget = document.getElementById('budget').value;
+  const waMsg = `Hi! I'm ${name} from ${city}. I just completed the Paint Solutions Quiz.\n\n🏗️ Project: ${answers[0]}\n🎨 Surface: ${answers[1]}\n⚠️ Concern: ${answers[2]}\n📐 Size: ${answers[3]}\n⏳ Timeline: ${answers[4]}\n💰 Budget: ${budget}\n\nRecommendation: ${label}\n\nPlease guide me with the best solution.`;
+  document.getElementById('wa-btn').href = `https://wa.me/91${mobile}?text=${encodeURIComponent(waMsg)}`;
+
+  // Send to Google Sheets
+  sendToSheet({ name, mobile, city, budget, project: answers[0], surface: answers[1], concern: answers[2], size: answers[3], timeline: answers[4], result: label });
+}
+
+function bookConsult() {
+  const mobile = document.getElementById('mobile').value.replace(/\D/g,'');
+  const name = document.getElementById('name').value.trim();
+  const waMsg = `Hi Nitish! I want to book a FREE consultation for my paint project.\nName: ${name}`;
+  // 🔴 Replace with your WhatsApp number below
+  window.open(`https://wa.me/918541080080?text=${encodeURIComponent(waMsg)}`, '_blank');
+}
+
+async function sendToSheet(data) {
+  // 🔴 Replace with your Google Apps Script URL
+  const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzmnF1LG87Bnetpk8Li45oFcQwKfXXlHFfURujflzKY9zNSuWJc2O4qgSKMjmtf01TGFA/exec';
+  if (SHEET_URL === 'YOUR_GOOGLE_SCRIPT_URL') return;
+  try {
+    await fetch(SHEET_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
+  } catch(e) { console.log('Sheet error', e); }
+}
+
+function show(id) {
+  ['start','quiz','form','result'].forEach(s => {
+    document.getElementById(s).classList.add('hidden');
+  });
+  document.getElementById(id).classList.remove('hidden');
+}
+</script>
+</body>
+</html>
